@@ -33,4 +33,7 @@ bool CZMQTable::appendCommand(const std::string& name, const CZMQCommand* pcmd)
     return true;
 }
 
+// TODO define UniValue CZMQTable::execute() (const std::string &method, const UniValue &params) const;
+// to call command that have been registered
+
 CZMQTable tableZMQ;

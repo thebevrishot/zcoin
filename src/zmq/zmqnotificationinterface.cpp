@@ -10,10 +10,12 @@
 #include "streams.h"
 #include "util.h"
 
+/*
 void zmqError(const char *str)
 {
     LogPrint("zmq", "zmq: Error: %s, errno=%s\n", str, zmq_strerror(errno));
 }
+*/
 
 CZMQNotificationInterface::CZMQNotificationInterface() : pcontext(NULL)
 {
