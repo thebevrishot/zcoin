@@ -42,6 +42,7 @@
 #include "uint256.h"
 #include "utilstrencodings.h"
 #ifdef ENABLE_WALLET
+#include "wallet.h"
 #include "wallet/wallet.h"
 #endif
 
@@ -414,6 +415,116 @@ UniValue exodus_getfeeshare(const UniValue& params, bool fHelp)
 
     return response;
 }
+
+#ifdef ENABLE_WALLET
+
+// List mints in wallet
+UniValue exodus_listmints(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 4)
+        throw runtime_error(
+            "exodus_listmints (mintconf maxconf propertid isused)\n"
+            "\nReturns mints in wallet.\n"
+            "\nArguments:\n"
+            "1. minconf               (numeric, optional, default=1) The minimum confirmations to filter\n"
+            "2. maxconf               (numeric, optional, default=9999999) The maximum confirmations to filter\n"
+            "3. propertyid            (numeric, optional, default=0) The identifier of the tokens or property filter, or 0 for entire wallet\n"
+            "4. isused                (boolean, optional) The used status of mint to filter\n"
+            "\nResult:\n"
+            "[                        (array of JSON objects)\n"
+            "  {\n"
+            "    \"publickey\" : \"hex\",             (string) The public key\n"
+            "    \"property\" : n,                  (numberic) The property id\n"
+            "    \"denomination\" : n,              (numberic) The id of denomination\n"
+            "    \"isused\" : true|false            (boolean) The used status of mint\n"
+            "    \"index\" : n                      (numberic) The index of mint in group\n"
+            "    \"group\" : n                      (numberic) The group that mint belong to\n"
+            "    \"confirmations\" : n              (numberic) The confirmations of mint\n"
+            "  },\n"
+            "  ...\n"
+            "]\n"
+            "\nExamples:\n"
+            + HelpExampleCli("exodus_listmints", "")
+            + HelpExampleCli("exodus_listmints", "0 100 1 false")
+            + HelpExampleRpc("exodus_listmints", "")
+            + HelpExampleRpc("exodus_listmints", "0 100 1 false")
+        );
+
+    int minDepth = 1;
+    if (params.size() > 0) {
+        minDepth = params[0].get_int();
+    }
+
+    int maxDepth = 9999999;
+    if (params.size() > 1 && params[1].get_int() < 9999999) {
+        maxDepth = params[1].get_int();
+    }
+
+    uint32_t propertyId = 0;
+    if (params.size() > 2) {
+        propertyId = ParsePropertyId(params[2]);
+    }
+
+    bool filterByUsedStatus = params.size() > 3, usedStatus = false;
+    if (filterByUsedStatus) {
+        usedStatus = params[3].get_bool();
+    }
+
+    if (propertyId > 0) {
+        RequireExistingProperty(propertyId);
+    }
+
+    int block;
+    {
+        LOCK(cs_main);
+        block = chainActive.Height();
+    }
+
+    std::list<MintInfo> mintInfos;
+    {
+        LOCK(pwalletMain->cs_wallet);
+        Wallet wallet(pwalletMain->strWalletFile);
+        boost::optional<function<bool (MintInfo const&)>> filterF([&] (MintInfo const & mintInfo) -> bool {
+
+            // confirmation filter
+            int confirmations = mintInfo.block >= 0 ? block - mintInfo.block + 1 : 0;
+            if (confirmations < minDepth || confirmations > maxDepth) {
+                return false;
+            }
+
+            if (propertyId && propertyId != mintInfo.id.propertyId) {
+                return false;
+            }
+
+            if (filterByUsedStatus && (usedStatus != mintInfo.isUsed)) {
+                return false;
+            }
+
+            return true;
+        });
+        wallet.ListMintInfos(std::back_inserter(mintInfos), filterF);
+    }
+
+    UniValue response(UniValue::VARR);
+    for (auto const &mintInfo : mintInfos) {
+        UniValue entry(UniValue::VOBJ);
+        CDataStream serialized(SER_NETWORK, CLIENT_VERSION);
+        serialized << mintInfo.id.publicKey;
+        entry.push_back(Pair("publickey", HexStr(serialized.vch)));
+        entry.push_back(Pair("property", static_cast<uint64_t>(mintInfo.id.propertyId)));
+        entry.push_back(Pair("denomination", mintInfo.id.denomination));
+        entry.push_back(Pair("isused", mintInfo.isUsed));
+        entry.push_back(Pair("index", mintInfo.index));
+        entry.push_back(Pair("group", static_cast<uint64_t>(mintInfo.groupId)));
+        entry.push_back(Pair("confirmations",
+            mintInfo.block >= 0 ? block - mintInfo.block + 1 : 0));
+        response.push_back(entry);
+    }
+
+    return response;
+}
+
+#endif
 
 // Provides the current values of the fee cache
 UniValue exodus_getfeecache(const UniValue& params, bool fHelp)
@@ -2267,6 +2378,7 @@ static const CRPCCommand commands[] =
 #ifdef ENABLE_WALLET
     { "exodus (data retrieval)", "exodus_listtransactions",          &exodus_listtransactions,           false },
     { "exodus (data retrieval)", "exodus_getfeeshare",               &exodus_getfeeshare,                false },
+    { "exodus (data retrieval)", "exodus_listmints",                 &exodus_listmints,                  false },
     { "exodus (configuration)",  "exodus_setautocommit",             &exodus_setautocommit,              true  },
 #endif
     { "hidden",                      "exodusrpc",                         &exodusrpc,                          true  },

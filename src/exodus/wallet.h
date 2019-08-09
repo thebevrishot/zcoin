@@ -9,6 +9,15 @@
 
 namespace exodus {
 
+struct MintInfo
+{
+    SigmaMintId id;
+    bool isUsed;
+    uint32_t groupId;
+    uint16_t index;
+    int32_t block;
+};
+
 class Wallet
 {
 public:
@@ -21,6 +30,21 @@ public:
         uint32_t propertyId,
         uint8_t denomination
     );
+
+    template<class OutputIt, class UnaryPredicate>
+    OutputIt ListMintInfos(OutputIt outItr, boost::optional<UnaryPredicate> p) {
+        LOCK(pwalletMain->cs_wallet);
+        CWalletDB(walletFile).ListExodusMint<SigmaMintId, exodus::SigmaEntry>(
+            [&outItr, &p] (exodus::SigmaEntry& entry) {
+                MintInfo info{entry.GetId(), entry.isUsed, entry.groupId, entry.index, entry.block};
+                if (p != boost::none && !p.get()(info)) {
+                    return;
+                }
+                *outItr++ = std::move(info);
+            }
+        );
+        return outItr;
+    }
 
 protected:
     template<class OutputIt>
