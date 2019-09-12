@@ -259,8 +259,9 @@ CDB::CDB(const std::string& strFilename, const char* pszMode, bool fFlushOnClose
             throw runtime_error("CDB: Failed to open database environment.");
 
         strFile = strFilename;
-        LogPrintf("foo look up 1 : %d\n", bitdb.mapFileUseCount[strFile]);
+        LogPrintf("foo CDB inc : %d\n", bitdb.mapFileUseCount[strFile]);
         ++bitdb.mapFileUseCount[strFile];
+        LogPrintf("foo CDB inc Res : %d\n", bitdb.mapFileUseCount[strFile]);
         pdb = bitdb.mapDb[strFile];
         if (pdb == NULL) {
             pdb = new Db(bitdb.dbenv, 0);
@@ -283,8 +284,9 @@ CDB::CDB(const std::string& strFilename, const char* pszMode, bool fFlushOnClose
             if (ret != 0) {
                 delete pdb;
                 pdb = NULL;
-                LogPrintf("foo look up 2 : %d\n", bitdb.mapFileUseCount[strFile]);
+                LogPrintf("foo CDB dec : %d\n", bitdb.mapFileUseCount[strFile]);
                 --bitdb.mapFileUseCount[strFile];
+                LogPrintf("foo CDB dec res : %d\n", bitdb.mapFileUseCount[strFile]);
                 strFile = "";
                 throw runtime_error(strprintf("CDB: Error %d, can't open database %s", ret, strFilename));
             }
@@ -328,8 +330,9 @@ void CDB::Close()
 
     {
         LOCK(bitdb.cs_db);
-        LogPrintf("foo look up 3 : %d\n", bitdb.mapFileUseCount[strFile]);
+        LogPrintf("foo Close dec : %d\n", bitdb.mapFileUseCount[strFile]);
         --bitdb.mapFileUseCount[strFile];
+        LogPrintf("foo Close result dec : %d\n", bitdb.mapFileUseCount[strFile]);
     }
 }
 
@@ -361,12 +364,13 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
     while (true) {
         {
             LOCK(bitdb.cs_db);
-            LogPrintf("foo look up 4 : %d\n", bitdb.mapFileUseCount[strFile]);
+            LogPrintf("foo Rewrite : %d\n", bitdb.mapFileUseCount[strFile]);
             if (!bitdb.mapFileUseCount.count(strFile) || bitdb.mapFileUseCount[strFile] == 0) {
                 // Flush log data to the dat file
                 bitdb.CloseDb(strFile);
                 bitdb.CheckpointLSN(strFile);
                 bitdb.mapFileUseCount.erase(strFile);
+                LogPrintf("foo Erase : %d\n", bitdb.mapFileUseCount[strFile]);
 
                 bool fSuccess = true;
                 LogPrintf("CDB::Rewrite: Rewriting %s...\n", strFile);
