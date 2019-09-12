@@ -8076,6 +8076,8 @@ bool CWallet::BackupWallet(const std::string &strDest) {
     while (true) {
         {
             LOCK(bitdb.cs_db);
+            LogPrintf("foo count : %d\n", bitdb.mapFileUseCount.count(strWalletFile));
+            LogPrintf("foo look up : %d\n", bitdb.mapFileUseCount[strWalletFile]);
             if (!bitdb.mapFileUseCount.count(strWalletFile) || bitdb.mapFileUseCount[strWalletFile] == 0) {
                 // Flush log data to the dat file
                 bitdb.CloseDb(strWalletFile);

@@ -12,7 +12,7 @@ from test_framework.util import (
 )
 import os
 import shutil
-from test_framework.test_helper import get_dumpwallet_otp 
+from test_framework.test_helper import get_dumpwallet_otp
 
 
 class WalletHDTest(BitcoinTestFramework):
@@ -45,9 +45,9 @@ class WalletHDTest(BitcoinTestFramework):
             key = get_dumpwallet_otp (ex.error['message'])
             self.nodes[1].importprivkey(self.nodes[0].dumpprivkey(non_hd_add, key))
         assert key, 'Import wallet did not raise exception when was called first time without one-time code.'
-        
 
-        # This should be enough to keep the master key and the non-HD key 
+
+        # This should be enough to keep the master key and the non-HD key
         self.nodes[1].backupwallet(tmpdir + "/hd.bak")
         #self.nodes[1].dumpwallet(tmpdir + "/hd.dump")
 
@@ -90,6 +90,7 @@ class WalletHDTest(BitcoinTestFramework):
         self.nodes[1] = start_node(1, self.options.tmpdir, self.node_args[1] + ['-rescan'])
         #connect_nodes_bi(self.nodes, 0, 1)
         assert_equal(self.nodes[1].getbalance(), num_hd_adds + 1)
+        raise Exception("cool")
 
 
 if __name__ == '__main__':
