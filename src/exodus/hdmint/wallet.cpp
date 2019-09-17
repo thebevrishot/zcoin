@@ -528,7 +528,9 @@ bool HDMintWallet::RegenerateMint(const HDMint& mint, SigmaMint& entry)
     auto count = mint.GetCount();
 
     MintPoolEntry mintPoolEntry(hashSeedMaster, seedId, count);
-    GenerateMint(mint.GetId().property, mint.GetId().denomination, coin, dMintDummy, mintPoolEntry);
+    if (!GenerateMint(mint.GetId().property, mint.GetId().denomination, coin, dMintDummy, mintPoolEntry)) {
+        return error("%s: failed to generate mint");
+    }
 
     //Fill in the zerocoinmint object's details
     exodus::SigmaPublicKey pubKey(coin);
