@@ -164,7 +164,7 @@ jobs:
         tar -xzf zcoin-*.tar.gz --strip-components=1
       working-directory: ${{ env.SOURCE_ARTIFACT }}
     - name: Use Xcode instead of Command Line Tools
-      run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      run: sudo xcode-select -s /Applications/Xcode_11.app/Contents/Developer
     - name: Install Required Packages
       run: brew install automake coreutils pkg-config
     - name: Build Dependencies
