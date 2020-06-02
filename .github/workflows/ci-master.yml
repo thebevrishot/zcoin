@@ -59,7 +59,12 @@ jobs:
     - name: Install Required Packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-zmq
+        sudo apt-get install -y python3-zmq ccache
+    - name: Prepare CCache
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: zcoin-build-linux-cache
     - name: Build Dependencies
       run: make -C depends -j$(nproc)
       working-directory: ${{ env.SOURCE_ARTIFACT }}
