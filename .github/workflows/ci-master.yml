@@ -57,11 +57,11 @@ jobs:
         sudo apt-get install -y python3-zmq ccache
     - name: Let ccache masquerade as the compilers
       run: |
-        cp $(which ccache) /usr/local/bin/
-        ln -s ccache /usr/local/bin/gcc
-        ln -s ccache /usr/local/bin/g++
-        ln -s ccache /usr/local/bin/cc
-        ln -s ccache /usr/local/bin/c++
+        sudo cp $(which ccache) /usr/local/bin/
+        sudo ln -s ccache /usr/local/bin/gcc
+        sudo ln -s ccache /usr/local/bin/g++
+        sudo ln -s ccache /usr/local/bin/cc
+        sudo ln -s ccache /usr/local/bin/c++
     - name: Extract Archives
       run: |
         tar -xzf depends.tar.gz
