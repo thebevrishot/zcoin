@@ -51,15 +51,27 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: ${{ env.SOURCE_ARTIFACT }}
+    - name: Install Required Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-zmq ccache
+    - name: Let ccache masquerade as the compilers
+      run: |
+        sudo cp $(which ccache) /usr/local/bin/
+        sudo ln -s ccache /usr/local/bin/gcc
+        sudo ln -s ccache /usr/local/bin/g++
+        sudo ln -s ccache /usr/local/bin/cc
+        sudo ln -s ccache /usr/local/bin/c++
     - name: Extract Archives
       run: |
         tar -xzf depends.tar.gz
         tar -xzf zcoin-*.tar.gz --strip-components=1
       working-directory: ${{ env.SOURCE_ARTIFACT }}
-    - name: Install Required Packages
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3-zmq
+    - name: Prepare CCache
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: zcoin-build-linux-cache
     - name: Build Dependencies
       run: make -C depends -j$(nproc)
       working-directory: ${{ env.SOURCE_ARTIFACT }}
