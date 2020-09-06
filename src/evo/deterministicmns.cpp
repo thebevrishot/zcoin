@@ -685,7 +685,7 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
                 // This might only happen with a ProRegTx that refers an external collateral
                 // In that case the new ProRegTx will replace the old one. This means the old one is removed
                 // and the new one is added like a completely fresh one, which is also at the bottom of the payment list
-                
+
                 // ProRegTx can't replace masternode declared in the same block
                 if (replacedDmn->pdmnState->nRegisteredHeight == nHeight) {
                     return _state.DoS(100, false, REJECT_CONFLICT, "protx-dup");
@@ -1044,6 +1044,7 @@ bool CDeterministicMNManager::UpgradeDiff(CDBBatch& batch, const CBlockIndex* pi
                 std::forward_as_tuple(oldMN->internalId),
                 std::forward_as_tuple(*oldMN->pdmnState, *newMN->pdmnState));
     }
+    LogPrintf("=== %s : updatedMNs.size() = %d\n", __func__, newDiff.updatedMNs.size());
 
     batch.Write(std::make_pair(DB_LIST_DIFF, pindexNext->GetBlockHash()), newDiff);
 

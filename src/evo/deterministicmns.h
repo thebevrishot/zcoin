@@ -578,6 +578,7 @@ public:
             s >> diff;
             updatedMNs.emplace(tmp2, std::move(diff));
         }
+        LogPrintf("=== %s : updatedMNs.size() = %d\n", __func__, updatedMNs.size());
         tmp = ReadCompactSize(s);
         for (size_t i = 0; i < tmp; i++) {
             tmp2 = ReadVarInt<Stream, uint64_t>(s);
