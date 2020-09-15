@@ -1,3 +1,4 @@
+#include "../../test/test_bitcoin.h"
 #include "../coin.h"
 #include "../params.h"
 
@@ -7,7 +8,7 @@
 
 namespace lelantus {
 
-BOOST_AUTO_TEST_SUITE(lelantus_coin_tests)
+BOOST_FIXTURE_TEST_SUITE(lelantus_coin_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(privatecoin)
 {
